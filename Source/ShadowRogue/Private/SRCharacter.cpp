@@ -4,6 +4,7 @@
 #include "SRCharacter.h"
 #include "GameFramework\SpringArmComponent.h"
 #include "Camera\CameraComponent.h"
+#include "GameFramework\CharacterMovementComponent.h"
 
 
 // Sets default values
@@ -14,9 +15,13 @@ ASRCharacter::ASRCharacter()
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>("SpringArm");
 	SpringArmComponent->SetupAttachment(RootComponent);
+	SpringArmComponent->bUsePawnControlRotation = true;
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>("Camera");
 	CameraComponent->SetupAttachment(SpringArmComponent);
+
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 }
 
 // Called when the game starts or when spawned
@@ -26,9 +31,20 @@ void ASRCharacter::BeginPlay()
 	
 }
 
-void ASRCharacter::Move(float scale)
+void ASRCharacter::MoveForward(float scale)
 {
-	AddMovementInput(GetActorForwardVector(), scale);
+	FRotator ControllerRotator = FRotator(0.0f, GetControlRotation().Yaw, 0.0f);
+	FVector ControllerForwardVector = ControllerRotator.Vector();
+
+	AddMovementInput(ControllerForwardVector, scale);
+}
+
+void ASRCharacter::MoveRight(float scale)
+{
+	FRotator ControllerRotator = FRotator(0.0f, GetControlRotation().Yaw, 0.0f);
+	FVector ControllerRightVector = FRotationMatrix(ControllerRotator).GetScaledAxis(EAxis::Y);
+
+	AddMovementInput(ControllerRightVector, scale);
 }
 
 // Called every frame
@@ -36,6 +52,12 @@ void ASRCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	FVector DebugLineStart = GetActorLocation() + (GetActorRightVector() * 100.0f);
+	FVector ActorDebugLineEnd = DebugLineStart + (GetActorForwardVector() * 100.0f);
+	FVector ControllerDebugLineEnd = DebugLineStart + (GetControlRotation().Vector() * 100.0f);
+
+	DrawDebugDirectionalArrow(GetWorld(), DebugLineStart, ActorDebugLineEnd, 100.0f, FColor::Green, false, 0.0f, 0, 5.0f);
+	DrawDebugDirectionalArrow(GetWorld(), DebugLineStart, ControllerDebugLineEnd, 100.0f, FColor::Blue, false, 0.0f, 0, 5.0f);
 }
 
 // Called to bind functionality to input
@@ -43,7 +65,10 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("Move", this, &ASRCharacter::Move);
+	PlayerInputComponent->BindAxis("Forward", this, &ASRCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("Right", this, &ASRCharacter::MoveRight);
+
 	PlayerInputComponent->BindAxis("Turn", this, &ASRCharacter::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("LookUp", this, &ASRCharacter::AddControllerPitchInput);
 }
 
