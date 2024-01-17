@@ -22,6 +22,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> ProjectileClass;
+
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* CameraComponent;
 
@@ -31,6 +34,7 @@ protected:
 protected:
 	void MoveForward(float scale);
 	void MoveRight(float scale);
+	void PrimaryAttack();
 
 public:	
 	// Called every frame

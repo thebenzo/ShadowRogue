@@ -47,6 +47,16 @@ void ASRCharacter::MoveRight(float scale)
 	AddMovementInput(ControllerRightVector, scale);
 }
 
+void ASRCharacter::PrimaryAttack()
+{
+	FTransform SpawnTM = FTransform(GetControlRotation(), GetMesh()->GetSocketLocation("Muzzle_01"));
+
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParameters);
+}
+
 // Called every frame
 void ASRCharacter::Tick(float DeltaTime)
 {
@@ -70,5 +80,9 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	PlayerInputComponent->BindAxis("Turn", this, &ASRCharacter::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUp", this, &ASRCharacter::AddControllerPitchInput);
+
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASRCharacter::Jump);
+
+	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &ASRCharacter::PrimaryAttack);
 }
 
