@@ -5,6 +5,7 @@
 #include "GameFramework\SpringArmComponent.h"
 #include "Camera\CameraComponent.h"
 #include "GameFramework\CharacterMovementComponent.h"
+#include "SRInteractionComponent.h"
 
 
 // Sets default values
@@ -19,6 +20,8 @@ ASRCharacter::ASRCharacter()
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>("Camera");
 	CameraComponent->SetupAttachment(SpringArmComponent);
+
+	InteractionComp = CreateDefaultSubobject<USRInteractionComponent>("Interaction");
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -49,12 +52,24 @@ void ASRCharacter::MoveRight(float scale)
 
 void ASRCharacter::PrimaryAttack()
 {
+	PlayAnimMontage(PrimaryAttackAnim);
+
+	GetWorld()->GetTimerManager().SetTimer(PrimaryAttackTimerHandle, this, &ASRCharacter::PrimaryAttack_Delayed, 0.2f, false);
+}
+
+void ASRCharacter::PrimaryAttack_Delayed()
+{
 	FTransform SpawnTM = FTransform(GetControlRotation(), GetMesh()->GetSocketLocation("Muzzle_01"));
 
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParameters);
+}
+
+void ASRCharacter::PrimaryInteract()
+{
+	InteractionComp->Interact();
 }
 
 // Called every frame
@@ -84,5 +99,7 @@ void ASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASRCharacter::Jump);
 
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &ASRCharacter::PrimaryAttack);
+
+	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ASRCharacter::PrimaryInteract);
 }
 

@@ -8,6 +8,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class USRInteractionComponent;
 
 UCLASS()
 class SHADOWROGUE_API ASRCharacter : public ACharacter
@@ -31,10 +32,20 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* SpringArmComponent;
 
+	UPROPERTY(VisibleAnywhere)
+	USRInteractionComponent* InteractionComp;
+
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* PrimaryAttackAnim;
+
+	FTimerHandle PrimaryAttackTimerHandle;
+
 protected:
 	void MoveForward(float scale);
 	void MoveRight(float scale);
 	void PrimaryAttack();
+	void PrimaryAttack_Delayed();
+	void PrimaryInteract();
 
 public:	
 	// Called every frame
